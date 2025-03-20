@@ -5,9 +5,9 @@ const Dashboard = () => {
     {
       id: 1,
       jobTitle: "Software Engineer",
-      company: "xAI",
-      location: "Remote",
-      link: "https://xai.jobs/123",
+      company: "Safaricom",
+      location: "Onsite",
+      link: "https://",
       category: "Software Engineering",
       status: "Applied",
       dateApplied: "2025-03-20",
@@ -32,16 +32,16 @@ const Dashboard = () => {
       status: "Offer",
       dateApplied: "2025-03-15",
     },
-    {
-      id: 4,
-      jobTitle: "Designer",
-      company: "Neuralink",
-      location: "San Francisco, CA",
-      link: "https://neuralink.com/careers/101",
-      category: "Other",
-      status: "Rejected",
-      dateApplied: "2025-03-10",
-    },
+  ]);
+
+  const [documents, setDocuments] = useState([
+    { id: 1, name: "Resume_v1.pdf", type: "Resume" },
+    { id: 2, name: "CoverLetter_SpaceX.docx", type: "Cover Letter" },
+  ]);
+
+  const [jobSources, setJobSources] = useState([
+    { id: 1, name: "LinkedIn", url: "https://linkedin.com/jobs" },
+    { id: 2, name: "Glassdoor", url: "https://glassdoor.com" },
   ]);
 
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -57,16 +57,18 @@ const Dashboard = () => {
     dateApplied: "",
   });
   const [editJob, setEditJob] = useState(null);
+  const [newSource, setNewSource] = useState({ name: "", url: "" });
 
   // Stats for Dashboard
   const totalApplications = jobs.length;
   const interviewsScheduled = jobs.filter((job) => job.status === "Interview").length;
   const offersReceived = jobs.filter((job) => job.status === "Offer").length;
 
-  // Filter jobs for Applications section
+  // Filter jobs for Applications
   const filteredJobs =
     filter === "All" ? jobs : jobs.filter((job) => job.status === filter);
 
+  // Handlers for Jobs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (editJob) {
@@ -108,6 +110,33 @@ const Dashboard = () => {
 
   const handleDeleteJob = (id) => {
     setJobs(jobs.filter((job) => job.id !== id));
+  };
+
+  // Handlers for Documents
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const newDoc = {
+        id: documents.length + 1,
+        name: file.name,
+        type: file.name.endsWith(".pdf") ? "Resume" : "Other", // Simple type inference
+      };
+      setDocuments([...documents, newDoc]);
+    }
+  };
+
+  // Handlers for Job Sources
+  const handleSourceInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewSource((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddSource = (e) => {
+    e.preventDefault();
+    if (newSource.name && newSource.url) {
+      setJobSources([...jobSources, { id: jobSources.length + 1, ...newSource }]);
+      setNewSource({ name: "", url: "" });
+    }
   };
 
   return (
@@ -171,7 +200,6 @@ const Dashboard = () => {
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
         {activeSection === "dashboard" && (
           <>
@@ -197,7 +225,6 @@ const Dashboard = () => {
           <>
             <h2 className="text-3xl font-semibold mb-6">Applications</h2>
             <div className="bg-gray-800 p-6 rounded-lg shadow">
-              {/* Status Filters */}
               <div className="flex gap-3 mb-6 flex-wrap">
                 {["All", "Applied", "Interview", "Offer", "Rejected", "Follow-up needed"].map(
                   (status) => (
@@ -215,8 +242,6 @@ const Dashboard = () => {
                   )
                 )}
               </div>
-
-              {/* Job Table */}
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
@@ -270,8 +295,6 @@ const Dashboard = () => {
                   </tbody>
                 </table>
               </div>
-
-              {/* Add/Edit Button and Form */}
               <button
                 onClick={() => {
                   setShowForm(!showForm);
@@ -281,7 +304,6 @@ const Dashboard = () => {
               >
                 {showForm ? "Cancel" : "Add Application"}
               </button>
-
               {showForm && (
                 <form
                   onSubmit={editJob ? handleUpdateJob : handleAddJob}
@@ -368,15 +390,104 @@ const Dashboard = () => {
         )}
 
         {activeSection === "resumes" && (
-          <h2 className="text-3xl font-semibold mb-6">Resumes & Documents (Coming Soon)</h2>
+          <>
+            <h2 className="text-3xl font-semibold mb-6">Resumes & Documents</h2>
+            <div className="bg-gray-800 p-6 rounded-lg shadow">
+              <input
+                type="file"
+                onChange={handleFileUpload}
+                className="bg-gray-900 border border-gray-600 p-3 w-full mb-4 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-white"
+                accept=".pdf,.doc,.docx"
+              />
+              <ul className="space-y-2">
+                {documents.map((doc) => (
+                  <li
+                    key={doc.id}
+                    className="flex justify-between items-center p-2 bg-gray-700 rounded-md"
+                  >
+                    <span>
+                      {doc.name} ({doc.type})
+                    </span>
+                    <button className="text-white hover:text-gray-400 underline">
+                      Download
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </>
         )}
 
         {activeSection === "sources" && (
-          <h2 className="text-3xl font-semibold mb-6">Job Sources (Coming Soon)</h2>
+          <>
+            <h2 className="text-3xl font-semibold mb-6">Job Sources</h2>
+            <div className="bg-gray-800 p-6 rounded-lg shadow">
+              <ul className="space-y-2 mb-4">
+                {jobSources.map((source) => (
+                  <li
+                    key={source.id}
+                    className="flex justify-between items-center p-2 bg-gray-700 rounded-md"
+                  >
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-gray-400"
+                    >
+                      {source.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <form onSubmit={handleAddSource} className="flex flex-col gap-4">
+                <input
+                  type="text"
+                  name="name"
+                  value={newSource.name}
+                  onChange={handleSourceInputChange}
+                  placeholder="Source Name (e.g., LinkedIn)"
+                  className="bg-gray-900 border border-gray-600 p-3 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-white"
+                  required
+                />
+                <input
+                  type="url"
+                  name="url"
+                  value={newSource.url}
+                  onChange={handleSourceInputChange}
+                  placeholder="Source URL"
+                  className="bg-gray-900 border border-gray-600 p-3 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-white"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-white text-black px-5 py-2 rounded-md font-medium hover:bg-gray-200 transition-colors duration-200 self-start"
+                >
+                  Add Source
+                </button>
+              </form>
+            </div>
+          </>
         )}
 
         {activeSection === "settings" && (
-          <h2 className="text-3xl font-semibold mb-6">Settings (Coming Soon)</h2>
+          <>
+            <h2 className="text-3xl font-semibold mb-6">Settings</h2>
+            <div className="bg-gray-800 p-6 rounded-lg shadow">
+              <p className="text-lg mb-4">Preferences</p>
+              <div className="flex items-center gap-4">
+                <label htmlFor="theme" className="text-white">
+                  Dark Mode (Default)
+                </label>
+                <input
+                  type="checkbox"
+                  id="theme"
+                  checked={true}
+                  onChange={() => alert("Theme toggle coming soon!")}
+                  className="h-5 w-5"
+                />
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>
